@@ -1,0 +1,93 @@
+﻿@using Agitator.Business.Entity.SystemEntity;
+@using Agitator.WebSite.Models.SystemModels;
+@using Agitator.Business.Common;
+@model MainPageModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>商砼管理系统</title>
+    <meta name="viewport" content="width=device-width" />
+    @*@Styles.Render("~/Content/css")*@
+    
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/easyui")
+    @Styles.Render("~/Content/themes/gray/css")
+    @*@Scripts.Render("~/bundles/easyui/custom")*@
+    <script>
+        function OpenFrame(tabTitle, id) {
+            var tab = $("#mainTab");
+            if (tab.tabs('exists', tabTitle)) {
+                tab.tabs('select', tabTitle);
+            } else {
+                var html = '<iframe scrolling="auto" frameborder="0"  src="@Url.Action("Index", "Company", new { area = "Contract" })" style="width:100%;height:1000px;"></iframe>';
+                tab.tabs('add', {
+                    title: tabTitle,
+                    content: html,
+                    closable: true
+                });
+            }
+        }
+    </script>
+</head>
+<body class="easyui-layout">
+    <div id="OverTimeLogin" class="easyui-dialog" data-options="closed:true,modal:true">
+        <iframe width="726px" scrolling="no" height="497px" frameborder="0" id="iOverTimeLogin"></iframe>
+    </div>
+    
+    <div data-options="region:'north',border:false,split:false" style="height: 78px;background-image:url('@Url.Content("/images/top_bg.png")');background-repeat:repeat;">
+        <div style="float:left;background-image:url('@Url.Content("/images/logo.png")');height:78px;width:100%;background-repeat:no-repeat;" id="DIVLogo">
+        </div>        
+        <div class="define-head">
+            <div class="define-logo">
+                <div id="LoginTopLine"></div>
+            </div>
+            <div class="define-account">
+
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'west',split:true,title:'菜单列表'" style="width: 200px; height:100%; padding-top: 2px; background-color:#2b3c54; overflow:auto">
+        <div id="RightTree" style=" background-color:#fff;">
+            <div class="easyui-accordion" style="width:100%;height:498px;">
+                @{
+                    if (Model != null)
+                    {
+                        foreach (var item in Model.MenuList)
+                        {
+                            if (item.parentId == 0 && item.isModelCategory)
+                            {
+                                <div title="@item.functionName" iconcls="icon-ok" style="overflow:auto;">
+                                    <ul id="tt1" class="easyui-tree">
+                                        @foreach (var subItem in Model.MenuList)
+                                        {
+                                            if (subItem.parentId == item.id && subItem.isModelEntry)
+                                            {
+                                                <li><a onclick="OpenFrame('@subItem.functionName',@item.id)"><span>@subItem.functionName</span></a></li>
+                                            }
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'south',border:false" style="height: 20px;">        
+        <div style="height:20px; width:100%;color:#c9d4f6; text-align:center; line-height:20px;border-top:1px #ccc solid;bottom:0; position:absolute;background-image:url('@Url.Content("/images/top_bg.png")');background-repeat:repeat-x;">
+            Copyright 2008-2016
+        </div>
+    </div>
+    <div data-options="region:'center',border:false">
+        <div id="mainTab" class="easyui-tabs" data-options="fit:true">
+            <div title="我的桌面" data-options="closable:false" style="overflow: hidden; background:#fff">
+                <iframe scrolling="auto" frameborder="0" src="" style="width: 100%; height: 100%;"></iframe>
+            </div>
+        </div>
+    </div>    
+</body>
+</html>

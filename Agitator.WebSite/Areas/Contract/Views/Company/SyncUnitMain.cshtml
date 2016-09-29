@@ -1,0 +1,132 @@
+﻿@model string
+<script>
+    function InitSyncGrid() {
+        var queryData = {
+            id: '@Model'
+        };
+        $("#tabSyncMain").datagrid({
+            url: '@Url.Action("LoadSyncStationList", "Company", new { area = "Contract" })',
+            queryParams: queryData,
+            title: '本单位已分配的同步站点',
+            iconCls: 'icon-save',
+            dataType: 'json',
+            rownumbers: true, //是否加行号
+            autoRowHeight: false,
+            pageSize: 50,
+            singleSelect: true,
+            idField: 'id',
+            columns: [[
+                {
+                    title: '操作', field: 'Visable', width: 60, formatter: function (value, row, index) {
+                        var html = "";
+                        var btntitle = "";
+                        var state = "";
+                        if (row.syncState == "0") {
+                            btntitle = "启用";
+                            state = "1";
+                        } else {
+                            btntitle = "暂停";
+                            state = "0";
+                        }
+                        html = "<a href='#' onclick='SetSyncUnitState(this);' sync_id='" + row.id + "' sync_state='" + state + "'>" + btntitle + "</a>";
+                        return html;
+                    }
+                },
+                { field: 'id', title: 'id', width: 60 },
+                { field: 'syncState', title: 'syncState', width: 60 },
+                { field: 'siteName', title: '站点名称', width: 160 }
+            ]]
+        });
+    }
+    function InitStationGrid(queryData) {
+
+        $("#tabStationMain").datagrid({
+            url: '@Url.Action("LoadStationList", "Company", new { area = "Contract" })',
+            title: '可以分配给此单位的同步站点',
+            iconCls: 'icon-save',
+            dataType: 'json',
+            rownumbers: true, //是否加行号
+            autoRowHeight: false,
+            pageSize: 50,
+            singleSelect: true,
+            idField: 'id',
+            queryParams: queryData,
+            columns: [[
+                { field: 'id', title: 'id', width: 60 },
+                { field: 'siteName', title: '站点名称', width: 160 }
+            ]]
+        });
+    }
+
+    function SetSyncUnitState(obj) {
+        var syncId = $(this).attr("sync_id");
+        var state = $(this).attr("sync_state");
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("SetStationSyncState", "Company", new { area = "Contract" })',
+            data: { id: syncId, state: state },
+            success: function (data) {
+                if (data.result == "1")
+                {
+                    var stateText = state == 1 ? "暂停" : "启用";
+                    $(obj).html(stateText);
+                }
+                else {
+                    jQuery.messager.alert("提示：", data.errmsg);
+                }
+            }
+        });
+    }
+
+    function AddSyncUnit() {
+        var row = $("#tabStationMain").datagrid("getSelected");
+        if (row) {
+            $.ajax({
+                url: '@Url.Action("AddStationSync", "Company", new { area = "Contract"})',
+                type: 'POST',
+                data: { unitId: '@Model', siteId: row.id, syncState: '1' },
+                success: function (data) {
+                    InitSyncGrid();
+                }
+            });
+        }
+
+    }
+
+    function DeleteSyncUnit() {
+        var row = $("#tabSyncMain").datagrid("getSelected");
+        if (row) {
+            $.ajax({
+                url: '@Url.Action("DeleteStationSync", "Company", new { area = "Contract"})',
+                type: 'POST',
+                data: { id: row.id },
+                success: function (data) {
+                    InitSyncGrid();
+                }
+            });
+        }
+    }
+
+    $(function () {
+        InitSyncGrid();
+
+        var queryData = {
+            body: '',
+            siteName: ''
+        };
+        InitStationGrid(queryData);
+    });
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div style="width:300px;float:left;">
+        <table id="tabSyncMain" class="easyui-datagrid" data-options="view:scrollview,pageSize:100" style="height:400px;width:100%;"></table>
+    </div>
+    <div style="width:70px;float:left;padding-left:10px;padding-top:100px;">
+        <a class="easyui-linkbutton" style="width:60px;" onclick="AddSyncUnit();">&lt;&lt;</a>
+        <br />
+        <a class="easyui-linkbutton" style="width:60px;margin-top:5px;" onclick="DeleteSyncUnit();">&gt;&gt;</a>
+    </div>
+    <div style="width:300px;float:left;">
+        <table id="tabStationMain" class="easyui-datagrid" data-options="view:scrollview,pageSize:100" style="height:400px;width:100%;"></table>
+    </div>
+</div>

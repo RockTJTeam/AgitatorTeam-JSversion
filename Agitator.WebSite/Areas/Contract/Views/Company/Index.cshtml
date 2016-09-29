@@ -1,0 +1,144 @@
+﻿<script>
+    var dataPageSize = 50;
+    var dataPageIndex = 1;
+
+    function InitGrid(queryData) {
+        $("#tabMain").datagrid({
+            url: '@Url.Action("LoadCompanyList", "Company", new { area="Contract"})',
+            title: '',
+            iconCls: 'icon-save',
+            dataType: 'json',
+            rownumbers: true, //是否加行号
+            queryParams: queryData,
+            columns: [[
+                {
+                    title: '操作', field: 'Visable', width: 160, formatter: function (value, row, index) {
+                        var btnhtml = '<a href="@Url.Action("Details","Company",new { area = "Contract" })/' + row.id + '"> 详情</a>';
+                        btnhtml += ' | <a href="@Url.Action("Edit","Company",new { area = "Contract" })/' + row.id + '">修改</a>';
+                        btnhtml += ' | <a href="#" onclick="deleteConfirmInfo(' + row.id + ');">删除</a>';
+                        var stateBtnValue = "";
+                        if (row.notused == "0") {
+                            stateBtnValue = "启用";
+                        } else {
+                            stateBtnValue = "停用";
+                        }
+                        btnhtml += ' | <a href="#" onclick="SetCompanyState(this);" unit_key="' + row.id + '" unit_state="' + row.notused + '" id="btnChangeState_' + row.id + '">' + stateBtnValue + '</a>';
+                        return btnhtml;
+                    }
+                },
+                { field: 'id', title: 'id', width: 80 },
+                { field: 'unitId', title: '单位编号', width: 80 },
+                { field: 'unitName', title: '企业名称', width: 300 },
+                { field: 'tel1', title: '电话1', width: 100 },
+                { field: 'tel2', title: '电话2', width: 100 },
+                { field: 'fax', title: '传真', width: 100 },
+                { field: 'address', title: '地址', width: 100 },
+                { field: 'linkman', title: '联系人', width: 100 },
+                { field: 'cop', title: '法人', width: 100 },
+                {
+                    field: 'State', title: '状态', width: 100, formatter: function (value, row, index) {
+                        return "<span id='unitState_" + row.id + "'>" + row.State + "</span>";
+                    }
+                },
+                { field: 'setMan', title: '登记人', width: 100 },
+                { field: 'setDate', title: '登记时间', width: 120 },
+                { field: 'remark', title: '备注', width: 200 }
+
+            ]],
+
+            autoRowHeight: false,
+            pageSize: dataPageSize,
+            singleSelect: true,
+            idField: 'id'
+        });
+    }
+
+    //Remove company
+    function deleteConfirmInfo(unitId) {
+        jQuery.messager.confirm("提示：", "确定删除吗？", function (event) {
+            if (event) {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("Delete","Company",new { area="Contract"})',
+                    data: { id: unitId },
+                    success: function (data) {
+                        if (data.result == "1") {
+                            jQuery.messager.alert('提示：', '删除成功');
+                            var queryData = {
+                                PageIndex: dataPageIndex,
+                                PageSize: dataPageSize,
+                                UnitId: $("#txtUnitId").val(),
+                                UnitName: $("#txtUnitName").val(),
+                                linkman: $("#txtlinkman").val()
+                            };
+                            InitGrid();
+                        } else {
+                            jQuery.messager.alert('提示：', '删除失败');
+                        }
+                    }
+                });
+            } else { }
+        });
+    }
+
+    function SetCompanyState(obj) {
+        var unitId = $(obj).attr("unit_key");
+        var state = $(obj).attr("unit_state");
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("UpdateCompanyState", "Company",new { area = "Contract"})',
+            data: { id: unitId, state: state },
+            success: function (data) {
+                if (data.result == "1") {
+                    var stateText = state == 1 ? "启用" : "停用";
+                    $(obj).html(stateText);
+                    $(obj).attr("unit_state", state == 1 ? 0 : 1);
+                    $("#unitState_" + unitId).html(state == 1 ? "已停用" : "已启用");
+                } else {
+                    jQuery.messager.alert("提示：", data.errmsg);
+                }
+            }
+        });
+    }
+
+    $(function () {
+
+        var queryData = {
+            PageIndex: dataPageIndex,
+            PageSize: dataPageSize,
+            UnitId: $("#txtUnitId").val(),
+            UnitName: $("#txtUnitName").val(),
+            linkman: $("#txtlinkman").val()
+        };
+        InitGrid(queryData);
+
+        $("#btnSearch").click(function () {
+            var queryDataSearch = {
+                PageIndex: dataPageIndex,
+                PageSize: dataPageSize,
+                UnitId: $("#txtUnitId").val(),
+                UnitName: $("#txtUnitName").val(),
+                linkman: $("#txtlinkman").val()
+            };
+            InitGrid(queryDataSearch);
+            return false;
+        });
+    })
+</script>
+<div class="page_subMarginTop"></div>
+<div id="tabSearch" style="padding:3px;">
+    <div style="margin-top:5px;">
+        单位编号：
+        <input type="text" id="txtUnitId" class="easyui-textbox" />
+        单位名称：
+        <input type="text" id="txtUnitName" class="easyui-textbox" />
+        联系人：
+        <input type="text" id="txtlinkman" class="easyui-textbox" />
+    </div>
+    <div style="margin-top:5px;">
+        <a id="btnSearch" href="#" class="easyui-linkbutton easyui-linkbutton-cstype">查询</a>
+        <a id="btnSearch" href="@Url.Action("Edit","Company",new { area = "Contract"})" class="easyui-linkbutton easyui-linkbutton-cstype">新建</a>
+    </div>
+</div>
+<table id="tabMain" class="easyui-datagrid" data-options="view:scrollview,pageSize:100" style="height:700px;width:100%;" toolbar="#tabSearch"></table>

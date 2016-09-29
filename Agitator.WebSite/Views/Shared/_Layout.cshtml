@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @*引用easyui脚本*@
+    @Scripts.Render("~/bundles/easyui")
+    @Scripts.Render("~/bundles/easyui/customMain")
+    @*@Scripts.Render("~/bundles/easyui/datagrid")*@
+    <script src="@Url.Content("/Scripts/easyUI/datagrid-scrollview.js")"></script>
+    @*@Styles.Render("~/Content/css")*@
+    @Styles.Render("~/Content/themes/bootstrap/css")
+    @Styles.Render("~/Content/themes/easyui/custom")
+    @Styles.Render("~/Content/Custom/gray")
+</head>
+<body style="padding-top:0px;">
+    @RenderBody()
+    @*@RenderSection("scripts", required: false)*@
+</body>
+</html>
